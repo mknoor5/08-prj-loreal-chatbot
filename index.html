@@ -19,12 +19,37 @@
     <div class="page-wrapper">
       <!------- Header / Branding ------->
       <header class="site-header">
-        <h1 class="site-title">Smart Product Advisor</h1>
+        <h1 class="site-title">L'Oreal Chat bot</h1>
       </header>
 
       <!------- Chat Area ------->
       <main>
         <section class="chatbox">
+          <div class="worker-setup">
+            <label for="workerUrlInput" class="visually-hidden"
+              >Cloudflare Worker URL</label
+            >
+            <input
+              id="workerUrlInput"
+              name="workerUrl"
+              type="url"
+              placeholder="Paste Cloudflare Worker URL (optional)"
+            />
+          </div>
+          <div class="user-setup">
+            <label for="userNameInput">Your name (optional)</label>
+            <input
+              id="userNameInput"
+              name="userName"
+              type="text"
+              placeholder="Enter your name"
+            />
+          </div>
+          <div
+            id="latestQuestion"
+            class="latest-question"
+            aria-live="polite"
+          ></div>
           <div id="chatWindow" class="chat-window">
             <!-- messages will be appended here via JS -->
           </div>

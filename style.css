@@ -46,6 +46,62 @@ body {
   white-space: pre-line;
 }
 
+/* latest question area */
+.latest-question {
+  margin: 12px 0;
+  padding: 10px 14px;
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+  color: #333;
+  border-radius: 6px;
+  font-size: 15px;
+}
+
+/* user input area */
+.user-setup {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.user-setup input {
+  padding: 8px 10px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+}
+
+/* Chat bubbles */
+.bubble {
+  display: inline-block;
+  max-width: 80%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+.bubble.user {
+  background: #000;
+  color: #fff;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+.bubble.ai {
+  background: #f1f1f1;
+  color: #111;
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+.msg-row {
+  display: flex;
+  flex-direction: column;
+}
+.msg-row.user {
+  align-items: flex-end;
+}
+.msg-row.ai {
+  align-items: flex-start;
+}
+
 /* messages */
 .msg {
   margin-bottom: 14px;
