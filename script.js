@@ -1,149 +1,85 @@
-/* DOM elements */
+// Simplified chat-only client
 const chatForm = document.getElementById("chatForm");
 const userInput = document.getElementById("userInput");
 const chatWindow = document.getElementById("chatWindow");
-const userNameInput = document.getElementById("userNameInput");
-const latestQuestionEl = document.getElementById("latestQuestion");
 
-// Default WORKER_URL may be provided in `secrets.js` (leave blank there for security)
-const DEFAULT_WORKER_URL = typeof WORKER_URL !== "undefined" ? WORKER_URL : "";
+// Cloudflare Worker endpoint (replace if needed)
+const API_URL = "https://lorealchatbot.mknoor.workers.dev/";
 
-// Input element where the user can paste their Worker URL (optional)
-const workerUrlInput = document.getElementById("workerUrlInput");
-if (workerUrlInput && DEFAULT_WORKER_URL) {
-  workerUrlInput.value = DEFAULT_WORKER_URL;
-}
+// Render a combined conversation block: user label + assistant reply
+function appendConversation(userText) {
+  const conv = document.createElement("div");
+  conv.className = "conv";
 
-// Read optional PROMPT_ID from secrets.js (non-secret value used to reference server-side prompts)
-const DEFAULT_PROMPT_ID = typeof PROMPT_ID !== "undefined" ? PROMPT_ID : "";
+  const userLine = document.createElement("div");
+  userLine.className = "conv-user";
+  const strong = document.createElement("strong");
+  strong.textContent = "You: ";
+  userLine.appendChild(strong);
+  userLine.appendChild(document.createTextNode(userText));
 
-// Conversation state (array of messages compatible with OpenAI Chat API)
-let conversation = [];
+  const assistantLine = document.createElement("div");
+  assistantLine.className = "conv-assistant";
+  assistantLine.style.whiteSpace = "pre-wrap";
+  assistantLine.textContent = "";
 
-// Load history if available
-function loadHistory() {
-  try {
-    const saved = localStorage.getItem("chat_history");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) conversation = parsed;
-    }
-  } catch (e) {
-    console.warn("Failed to load history", e);
-  }
-}
-
-function saveHistory() {
-  try {
-    localStorage.setItem("chat_history", JSON.stringify(conversation));
-  } catch (e) {
-    console.warn("Failed to save history", e);
-  }
-}
-
-function renderChat() {
-  chatWindow.innerHTML = "";
-  // Render messages as bubbles
-  for (const msg of conversation) {
-    const row = document.createElement("div");
-    row.className = `msg-row ${msg.role}`;
-    const bubble = document.createElement("div");
-    bubble.className = `bubble ${msg.role}`;
-    bubble.textContent = msg.content;
-    row.appendChild(bubble);
-    chatWindow.appendChild(row);
-  }
-  // scroll to bottom
+  conv.appendChild(userLine);
+  conv.appendChild(assistantLine);
+  chatWindow.appendChild(conv);
   chatWindow.scrollTop = chatWindow.scrollHeight;
+  return assistantLine;
 }
 
-// Initial load and render
-loadHistory();
-renderChat();
-
-/* Handle form submit */
-chatForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
+chatForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
   const text = userInput.value.trim();
   if (!text) return;
 
-  // Update latest question UI and conversation context
-  latestQuestionEl.textContent = text;
-
-  // If user provided a name, include a system message at the start describing the user
-  const userName =
-    userNameInput && userNameInput.value ? userNameInput.value.trim() : "";
-  if (userName) {
-    // ensure a system message about the user exists at first position
-    if (
-      !conversation.length ||
-      conversation[0].role !== "system" ||
-      !conversation[0].content.startsWith("User:")
-    ) {
-      conversation.unshift({ role: "system", content: `User: ${userName}` });
-    } else {
-      conversation[0].content = `User: ${userName}`;
-    }
-  }
-
-  // Append user's latest message to conversation
-  const userMessage = { role: "user", content: text };
-  conversation.push(userMessage);
-  saveHistory();
-  renderChat();
-
-  // Show loading state near the chat
-  latestQuestionEl.textContent = text;
-
-  const body = { messages: conversation.slice() };
-
-  // Include prompt id if available (UI value not provided; secrets.js default used)
-  if (DEFAULT_PROMPT_ID) {
-    body.prompt_id = DEFAULT_PROMPT_ID;
-  }
-
-  // Determine final worker URL: prefer UI input, then secrets.js default
-  const targetUrl =
-    workerUrlInput && workerUrlInput.value && workerUrlInput.value.trim()
-      ? workerUrlInput.value.trim()
-      : DEFAULT_WORKER_URL;
-
-  if (!targetUrl) {
-    chatWindow.textContent =
-      "Please enter your Cloudflare Worker URL above (or set WORKER_URL in secrets.js).";
-    return;
-  }
+  // append conversation block (user + assistant placeholder)
+  userInput.value = "";
+  const assistantNode = appendConversation(text);
+  assistantNode.textContent = "Thinking...";
 
   try {
-    const res = await fetch(targetUrl, {
+    const resp = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a L'Oréal assistant who talks like you are Stephen A. Smith on First Take helps users discover and understand L’Oréal’s extensive range of products—makeup, skincare, haircare, and fragrances—as well as provide personalized routines and recommendations. Only answer questions related to L’Oréal products, routines, and recommendations. Politely refuse to answer questions unrelated to L’Oréal products, routines, recommendations, or beauty-related topics. Respond in an upbeat, friendly tone as if : energetic, complimentary, and direct, but not offensive. Keep answers concise.",
+          },
+          { role: "user", content: text },
+        ],
+      }),
     });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      chatWindow.textContent = `Error ${res.status}: ${errText}`;
+    if (!resp.ok) {
+      const errTxt = await resp.text();
+      assistantNode.textContent = `Error: ${resp.status} ${errTxt}`;
       return;
     }
-
-    const data = await res.json();
-    // OpenAI responses use data.choices[0].message.content
-    const reply = data?.choices?.[0]?.message?.content ?? JSON.stringify(data);
-    // Append assistant response to conversation and render
-    conversation.push({ role: "assistant", content: reply });
-    saveHistory();
-    renderChat();
-    // After response, clear latest question (per requirements it resets with each new question)
-    latestQuestionEl.textContent = "";
+    const data = await resp.json();
+    const assistantText =
+      data?.choices?.[0]?.message?.content ?? "No response from API.";
+    assistantNode.textContent = assistantText;
   } catch (err) {
-    // show error in UI as assistant message
-    const errMsg = `Network error: ${err.message}`;
-    conversation.push({ role: "assistant", content: errMsg });
-    saveHistory();
-    renderChat();
-  } finally {
-    userInput.value = "";
+    console.error(err);
+    assistantNode.textContent =
+      "Sorry — there was an error communicating with the assistant.";
   }
+});
+
+// Add initial example conversation to match the screenshot
+document.addEventListener("DOMContentLoaded", () => {
+  const exampleUser =
+    "What's the difference between a serum and a treatment product?";
+  const assistantNode = appendConversation(exampleUser);
+  const exampleAssistant = `Great question! 😊 A serum is a lightweight, fast-absorbing liquid applied after cleansing and before moisturizing. It's packed with active ingredients targeting specific skin concerns like hydration, fine lines, or brightening.
+
+A treatment product, on the other hand, can come in various forms like creams, masks, or spot treatments. It's designed to address particular issues, often with a more intense or targeted approach, such as acne or hyperpigmentation.
+
+Think of serums as daily boosters 💧 and treatment products as intensive care when your skin needs extra attention. Let me know if you need recommendations for either! ✨`;
+  assistantNode.textContent = exampleAssistant;
 });

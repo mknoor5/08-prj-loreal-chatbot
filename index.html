@@ -1,90 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chat Assistant</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>L'Oréal — Smart Routine &amp; Product Advisor</title>
     <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@600;700&display=swap"
       rel="stylesheet"
     />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="style.css" />
+    <link href="style.css" rel="stylesheet" type="text/css" />
   </head>
-
   <body>
-    <div class="page-wrapper">
-      <!------- Header / Branding ------->
-      <header class="site-header">
-        <h1 class="site-title">L'Oreal Chat bot</h1>
-      </header>
+    <header class="site-header">
+      <div class="container">
+        <div class="logo">L'ORÉAL</div>
+        <div class="subtitle">Smart Routine &amp; Product Advisor</div>
+      </div>
+    </header>
 
-      <!------- Chat Area ------->
-      <main>
-        <section class="chatbox">
-          <div class="worker-setup">
-            <label for="workerUrlInput" class="visually-hidden"
-              >Cloudflare Worker URL</label
-            >
-            <input
-              id="workerUrlInput"
-              name="workerUrl"
-              type="url"
-              placeholder="Paste Cloudflare Worker URL (optional)"
-            />
-          </div>
-          <div class="user-setup">
-            <label for="userNameInput">Your name (optional)</label>
-            <input
-              id="userNameInput"
-              name="userName"
-              type="text"
-              placeholder="Enter your name"
-            />
-          </div>
-          <div
-            id="latestQuestion"
-            class="latest-question"
-            aria-live="polite"
-          ></div>
-          <div id="chatWindow" class="chat-window">
-            <!-- messages will be appended here via JS -->
-          </div>
+    <main class="container chat-container">
+      <section class="chat-panel">
+        <div id="chatWindow" class="chat-window" aria-live="polite"></div>
 
-          <form id="chatForm" class="chat-form">
-            <label for="userInput" class="visually-hidden">Message</label>
-            <input
-              id="userInput"
-              name="userInput"
-              type="text"
-              placeholder="Ask me about products or routines…"
-              autocomplete="off"
-              required
-            />
-            <button type="submit" id="sendBtn">
-              <span class="material-icons">send</span>
-              <span class="visually-hidden">Send</span>
-            </button>
-          </form>
-        </section>
-      </main>
+        <form id="chatForm" class="chat-form">
+          <input
+            type="text"
+            id="userInput"
+            placeholder="Ask me about any L'Oréal product or routine..."
+            autocomplete="off"
+          />
+          <button type="submit" id="sendButton" class="send" aria-label="Send">
+            ▶
+          </button>
+        </form>
+      </section>
+    </main>
 
-      <!------- Footer Links ------->
-      <footer class="site-footer">
-        <p>&copy; 2025 Company Name. All rights reserved.</p>
-        <nav>
-          <!-- These URLs are placeholders -->
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div class="copyright">© 2025 L'Oréal. All rights reserved.</div>
+        <nav class="footer-links">
           <a href="#">Privacy Policy</a>
           <a href="#">Terms of Use</a>
           <a href="#">Contact</a>
         </nav>
-      </footer>
-    </div>
+      </div>
+    </footer>
 
-    <!-- secrets.js can be removed when using Cloudflare Workers for API requests -->
     <script src="secrets.js"></script>
     <script src="script.js"></script>
   </body>
